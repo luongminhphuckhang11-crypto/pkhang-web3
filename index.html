@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Console — Phúc Khang Shop</title>
+  <style>
+    :root {
+      --bg: #070b0e;
+      --panel: #0f161c;
+      --panel-2: #151f27;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(148, 163, 184, 0.16);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(16, 185, 129, 0.10), transparent 36%),
+        radial-gradient(circle at 90% 10%, rgba(56, 189, 248, 0.08), transparent 32%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    button, input, select, textarea { font-family: inherit; }
+    .container { max-width: 1180px; margin: 0 auto; padding: 20px; }
+    header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 22, 28, 0.94);
+      position: sticky; top: 0; z-index: 20;
+    }
+    .nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+    .brand { font-size: 19px; font-weight: 800; }
+    .brand span { color: var(--accent); }
+    .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .btn {
+      padding: 8px 13px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--panel-2); color: var(--text); cursor: pointer; font-weight: 600; font-size: 12px;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn-primary { background: var(--accent); color: #04130d; border-color: var(--accent); }
+    .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 18px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; margin-top: 18px; }
+    .card {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 16px; padding: 18px;
+    }
+    .stat-num { font-size: 24px; font-weight: 800; color: var(--accent); margin-top: 6px; }
+    .muted { color: var(--muted); font-size: 12px; }
+    input, select, textarea {
+      width: 100%; padding: 9px 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+      margin-bottom: 10px;
+    }
+    textarea { min-height: 95px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .table-wrap { overflow-x: auto; }
+    .badge-ok { color: #34d399; background: rgba(16,185,129,0.15); padding: 2px 8px; border-radius: 999px; font-weight: 700; display: inline-block; margin: 2px 0; }
+    .badge-warn { color: #fbbf24; background: rgba(245,158,11,0.15); padding: 2px 8px; border-radius: 999px; font-weight: 700; display: inline-block; margin: 2px 0; }
+    .badge-bad { color: #f87171; background: rgba(239,68,68,0.15); padding: 2px 8px; border-radius: 999px; font-weight: 700; display: inline-block; margin: 2px 0; }
+    .key-box {
+      background: #05090d; border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px; max-height: 160px; overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: pre-wrap;
+    }
+    .toast {
+      position: fixed; right: 18px; bottom: 18px; z-index: 50;
+      background: var(--panel-2); border: 1px solid var(--accent);
+      padding: 11px 15px; border-radius: 12px; display: none; font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">ADMIN CONSOLE • <span>PHÚC KHANG SHOP</span></div>
+      <div class="row">
+        <button type="button" class="btn" id="exportBtn" style="display:none;" onclick="exportJson()">Xuất JSON</button>
+        <button type="button" class="btn" id="lockBtn" style="display:none;" onclick="lockAdmin()">Khóa</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <form class="card" id="loginCard" style="max-width:400px; margin:48px auto;" onsubmit="event.preventDefault(); loginAdmin();">
+      <h2 style="margin-top:0;">Đăng Nhập Quản Trị</h2>
+      <p class="muted">Tài khoản mặc định: <strong>admin</strong> • Mật khẩu: <strong>admin123</strong></p>
+      <label for="adminUser">Tài khoản</label>
+      <input id="adminUser" value="admin" autocomplete="username" />
+      <label for="adminPass">Mật khẩu</label>
+      <input id="adminPass" type="password" value="admin123" placeholder="admin123" autocomplete="current-password" />
+      <div class="row" style="margin-top:4px;">
+        <button type="submit" class="btn btn-primary" style="flex:1; padding:10px;">Mở bảng điều khiển</button>
+        <button type="button" class="btn" style="padding:10px;" onclick="quickFillLogin()">Điền nhanh</button>
+      </div>
+    </form>
+
+    <div id="adminPanel" style="display:none;">
+      <div class="grid-4">
+        <div class="card" style="margin-top:0;">
+          <div class="muted">Thành viên</div>
+          <div class="stat-num" id="stUsers">0</div>
+        </div>
+        <div class="card" style="margin-top:0;">
+          <div class="muted">IP chờ duyệt</div>
+          <div class="stat-num" id="stPendingIp">0</div>
+        </div>
+        <div class="card" style="margin-top:0;">
+          <div class="muted">Đơn nạp chờ duyệt</div>
+          <div class="stat-num" id="stPendingDep">0</div>
+        </div>
+        <div class="card" style="margin-top:0;">
+          <div class="muted">Key trong kho</div>
+          <div class="stat-num" id="stKeys">0</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3 style="margin-top:0;">Duyệt IP & Tài Khoản</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tài khoản</th>
+                  <th>Số dư</th>
+                  <th>IP</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="usersBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0;">Cộng / Trừ Tiền</h3>
+          <label for="balUser">Chọn tài khoản</label>
+          <select id="balUser"></select>
+          <label for="balAmt">Số tiền (nhập số âm để trừ, ví dụ 10000 hoặc -5000)</label>
+          <input id="balAmt" type="number" step="500" value="10000" />
+          <div class="row" style="margin-bottom:10px;">
+            <button type="button" class="btn" onclick="setQuickAmt(5000)">+5.000₫</button>
+            <button type="button" class="btn" onclick="setQuickAmt(9000)">+9.000₫</button>
+            <button type="button" class="btn" onclick="setQuickAmt(20000)">+20.000₫</button>
+            <button type="button" class="btn" onclick="setQuickAmt(50000)">+50.000₫</button>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="updateBalance()">Cập nhật số dư</button>
+
+          <h3 style="margin-top:20px;">Duyệt Nạp Tiền VietQR</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Đơn / TK</th>
+                  <th>Số tiền</th>
+                  <th>Trạng thái</th>
+                  <th>Duyệt</th>
+                </tr>
+              </thead>
+              <tbody id="depositsBody"></tbody>
+            </table>
+          </div>
+        </div>
